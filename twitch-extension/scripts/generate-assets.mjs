@@ -7,6 +7,7 @@
 // Outputs land in twitch-extension/assets/.
 
 import sharp from "sharp";
+import { Resvg } from "@resvg/resvg-js";
 import { readFileSync, mkdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -15,6 +16,30 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(here, "..", "..");
 const outDir = path.resolve(here, "..", "assets");
 mkdirSync(outDir, { recursive: true });
+
+// Inter font buffers — passed to resvg's font loader directly.
+// resvg-js 2.6 doesn't honor data-URI @font-face inside the SVG, so we pass
+// the buffers via the API and reference them by their internal family name.
+const interDir = path.join(repoRoot, "node_modules", "@fontsource/inter/files");
+const interFontBuffers = [400, 500, 600, 700].map((w) =>
+  readFileSync(path.join(interDir, `inter-latin-${w}-normal.woff2`))
+);
+// Placeholder kept for legacy refs; left empty since fonts come from buffers.
+const interStyle = "";
+
+function renderSvgToPng(svg, outputPath) {
+  const resvg = new Resvg(svg, {
+    font: {
+      fontBuffers: interFontBuffers,
+      defaultFontFamily: "Segoe UI",
+      // System fonts give resvg a proper fallback if a glyph isn't in Inter
+      // (e.g. the ↗ arrow). Without this it falls through to a condensed
+      // built-in font that doesn't read as the brand.
+      loadSystemFonts: true,
+    },
+  });
+  writeFileSync(outputPath, resvg.render().asPng());
+}
 
 // Dedicated extension icon (calendar + forecast curve), authored at
 // twitch-extension/assets/_logo-source.svg.
@@ -39,6 +64,7 @@ console.log("wrote logo.png (100x100)");
 // SVG composes: icon on the left, name + tagline on the right.
 const discoverySvg = `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="300" height="200" viewBox="0 0 300 200">
+  ${interStyle}
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0%" stop-color="#1a0e2e"/>
@@ -49,16 +75,14 @@ const discoverySvg = `<?xml version="1.0" encoding="UTF-8"?>
   <g transform="translate(20, 50)">
     <image href="data:image/svg+xml;base64,${Buffer.from(extensionIconSvg).toString("base64")}" width="100" height="100"/>
   </g>
-  <g font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" fill="#efeff1">
+  <g font-family="Segoe UI, Arial, sans-serif" fill="#efeff1">
     <text x="140" y="92" font-size="22" font-weight="700" letter-spacing="-0.5">Schedule</text>
     <text x="140" y="118" font-size="22" font-weight="700" letter-spacing="-0.5" fill="#9147ff">Forecast</text>
     <text x="140" y="142" font-size="11" font-weight="500" fill="#adadb8">by Collab Planner</text>
   </g>
-  <text x="20" y="180" font-family="-apple-system, sans-serif" font-size="10" fill="#6b6b75" letter-spacing="0.3">WHEN THIS STREAMER IS LIKELY LIVE</text>
+  <text x="20" y="180" font-family="Segoe UI, Arial, sans-serif" font-size="10" font-weight="500" fill="#6b6b75" letter-spacing="0.3">WHEN THIS STREAMER IS LIKELY LIVE</text>
 </svg>`;
-await sharp(Buffer.from(discoverySvg), { density: 300 })
-  .png()
-  .toFile(path.join(outDir, "discovery.png"));
+renderSvgToPng(discoverySvg, path.join(outDir, "discovery.png"));
 console.log("wrote discovery.png (300x200)");
 
 // ── 3. Detail-page screenshot 1024x768 ──────────────────────────────
@@ -66,6 +90,7 @@ console.log("wrote discovery.png (300x200)");
 // caption strip on the left half explaining what the viewer sees.
 const screenshotSvg = `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="1024" height="768" viewBox="0 0 1024 768">
+  ${interStyle}
   <defs>
     <linearGradient id="page" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0%" stop-color="#1a0e2e"/>
@@ -80,7 +105,7 @@ const screenshotSvg = `<?xml version="1.0" encoding="UTF-8"?>
   <rect width="1024" height="768" fill="url(#page)"/>
 
   <!-- Left side: caption -->
-  <g font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" fill="#efeff1">
+  <g font-family="Segoe UI, Arial, sans-serif" fill="#efeff1">
     <text x="60" y="140" font-size="48" font-weight="700" letter-spacing="-1.5">Schedule Forecast</text>
     <text x="60" y="190" font-size="22" font-weight="500" fill="#adadb8">When this streamer is likely live —</text>
     <text x="60" y="218" font-size="22" font-weight="500" fill="#adadb8">auto-built from broadcast history.</text>
@@ -112,11 +137,11 @@ const screenshotSvg = `<?xml version="1.0" encoding="UTF-8"?>
     <rect width="340" height="480" rx="6" fill="#18181b"/>
 
     <!-- Panel header -->
-    <text x="20" y="38" font-family="-apple-system, sans-serif" font-size="13" font-weight="600" fill="#efeff1">Likely upcoming streams</text>
+    <text x="20" y="38" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="600" fill="#efeff1">Likely upcoming streams</text>
     <line x1="20" y1="52" x2="320" y2="52" stroke="#2a2a2e" stroke-width="1"/>
 
     <!-- Prediction rows -->
-    <g font-family="-apple-system, sans-serif" font-size="13" fill="#efeff1">
+    <g font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#efeff1">
       <g transform="translate(20, 78)">
         <text fill="#adadb8" font-weight="600">Tue</text>
         <text x="50">7:00 PM</text>
@@ -159,10 +184,10 @@ const screenshotSvg = `<?xml version="1.0" encoding="UTF-8"?>
     </g>
 
     <!-- Collabs section -->
-    <text x="20" y="280" font-family="-apple-system, sans-serif" font-size="11" font-weight="600" fill="#adadb8" letter-spacing="0.4">UPCOMING COLLABS</text>
+    <text x="20" y="280" font-family="Segoe UI, Arial, sans-serif" font-size="11" font-weight="600" fill="#adadb8" letter-spacing="0.4">UPCOMING COLLABS</text>
     <line x1="20" y1="290" x2="320" y2="290" stroke="#2a2a2e"/>
 
-    <g transform="translate(20, 312)" font-family="-apple-system, sans-serif" fill="#efeff1">
+    <g transform="translate(20, 312)" font-family="Segoe UI, Arial, sans-serif" fill="#efeff1">
       <text font-size="13"><tspan fill="#adadb8" font-weight="600">Sat</tspan>  <tspan>6:00 PM</tspan></text>
       <text x="0" y="18" font-size="12" fill="#adadb8">with @alice @bob</text>
       <text x="0" y="36" font-size="12">Apex Legends</text>
@@ -170,13 +195,11 @@ const screenshotSvg = `<?xml version="1.0" encoding="UTF-8"?>
 
     <!-- Footer -->
     <line x1="20" y1="430" x2="320" y2="430" stroke="#2a2a2e"/>
-    <text x="170" y="455" text-anchor="middle" font-family="-apple-system, sans-serif" font-size="11" fill="#9147ff">Powered by Collab Planner ↗</text>
+    <text x="170" y="455" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="11" fill="#9147ff">Powered by Collab Planner ↗</text>
   </g>
 </svg>`;
 
-await sharp(Buffer.from(screenshotSvg), { density: 200 })
-  .png()
-  .toFile(path.join(outDir, "screenshot.png"));
+renderSvgToPng(screenshotSvg, path.join(outDir, "screenshot.png"));
 console.log("wrote screenshot.png (1024x768)");
 
 // Also dump the source SVGs for editing later
