@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
 import { Prisma } from "@/app/generated/prisma/client";
 import { prisma } from "@/lib/db";
 import { verifyExtensionJwt, ExtensionJwtError } from "@/lib/twitch/extensionJwt";
@@ -177,9 +177,9 @@ async function handleUnconnected(twitchId: string): Promise<NextResponse> {
 
   // Fire-and-forget. We deliberately do not await — the viewer gets "warming"
   // immediately and the next request (after ~5s retry) gets the cached payload.
-  void computeAndCacheUnconnected(twitchId).catch((err) => {
+  after(() => computeAndCacheUnconnected(twitchId).catch((err) => {
     console.error(`[ext/panel] background analysis failed for ${twitchId}:`, err);
-  });
+  }));
 
   return json({ status: "warming" });
 }
