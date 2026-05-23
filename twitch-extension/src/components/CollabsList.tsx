@@ -14,11 +14,11 @@ export function CollabsList({ collabs, format }: Props) {
     <section className="collabs">
       <h2>Upcoming collabs</h2>
       <ul>
-        {collabs.map((c) => {
+        {collabs.map((c, idx) => {
           const slot = formatSlot(c.startsAt, format);
           const names = c.partners.map((p) => `@${p.username}`).join(" ");
           return (
-            <li key={c.startsAt} className="collab">
+            <li key={`${c.startsAt}-${idx}`} className="collab">
               <div>
                 <span className="day">{slot.day}</span> <span className="time">{slot.time}</span>
               </div>
