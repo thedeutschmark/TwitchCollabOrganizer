@@ -76,3 +76,13 @@ h2 {
   text-align: center;
   padding: 24px 0;
 }
+.cta {
+  display: inline-block;
+  background: #9147ff;
+  color: white;
+  padding: 8px 14px;
+  border-radius: 4px;
+  text-decoration: none;
+  font-weight: 600;
+}
+.cta:hover { background: #7a3fd9; }
