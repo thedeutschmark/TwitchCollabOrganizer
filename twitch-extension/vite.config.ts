@@ -10,8 +10,8 @@ export default defineConfig({
     emptyOutDir: true,
     rollupOptions: {
       input: {
-        panel: resolve(__dirname, "public/panel.html"),
-        config: resolve(__dirname, "public/config.html"),
+        panel: resolve(__dirname, "panel.html"),
+        config: resolve(__dirname, "config.html"),
       },
     },
     minify: false,
