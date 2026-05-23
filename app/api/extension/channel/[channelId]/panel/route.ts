@@ -217,10 +217,16 @@ async function computeAndCacheUnconnected(twitchId: string): Promise<void> {
   });
 
   const now = new Date();
-  await prisma.extensionPredictionCache.update({
+  await prisma.extensionPredictionCache.upsert({
     where: { twitchId },
-    data: {
-      payload: payload as never,
+    create: {
+      twitchId,
+      payload: payload as unknown as Prisma.InputJsonValue,
+      computedAt: now,
+      expiresAt: new Date(now.getTime() + UNCONNECTED_TTL_MS),
+    },
+    update: {
+      payload: payload as unknown as Prisma.InputJsonValue,
       computedAt: now,
       expiresAt: new Date(now.getTime() + UNCONNECTED_TTL_MS),
     },
