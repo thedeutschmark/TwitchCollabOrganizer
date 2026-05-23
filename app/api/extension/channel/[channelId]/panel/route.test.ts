@@ -1,6 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { SignJWT } from "jose";
 
+// Mock next/server's `after` so it doesn't require a real Next.js request scope.
+vi.mock("next/server", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("next/server")>();
+  return {
+    ...actual,
+    after: vi.fn((cb: () => unknown) => { void cb(); }),
+  };
+});
+
 // Mock prisma and the Helix client BEFORE importing the route.
 vi.mock("@/lib/db", () => ({
   prisma: {
