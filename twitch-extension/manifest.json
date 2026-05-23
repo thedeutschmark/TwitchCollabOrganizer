@@ -1,5 +1,5 @@
 {
-  "name": "Collab Planner",
+  "name": "Stream Forecast by Collab Planner",
   "version": "0.1.0",
   "description": "Surfaces this streamer's most likely upcoming live times based on broadcast history, plus any scheduled collabs they've planned.",
   "views": {
