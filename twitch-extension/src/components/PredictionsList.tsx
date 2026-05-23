@@ -23,10 +23,10 @@ export function PredictionsList({ predictions, format }: Props) {
   }
   return (
     <ul className="predictions">
-      {predictions.map((p) => {
+      {predictions.map((p, idx) => {
         const slot = formatSlot(p.startsAt, format);
         return (
-          <li key={p.startsAt} className="prediction">
+          <li key={`${p.startsAt}-${idx}`} className="prediction">
             <span className="day">{slot.day}</span>
             <span className="time">{slot.time}</span>
             <span className="dur">~{p.durationHours}h</span>
